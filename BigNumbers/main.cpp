@@ -7,6 +7,7 @@
 class BigNumbers
 {
 public:
+	BigNumbers() = default;
 	BigNumbers(const std::string& s)
 		:num(Convert(s)){}
 
@@ -15,9 +16,9 @@ public:
 
 	static std::vector<int> Convert(const std::string& s);
 
-	static std::vector<int> Add(std::string s1, std::string s2);
+	static BigNumbers Add(const BigNumbers& s1, const BigNumbers& s2);
 
-	static std::vector<int> Substract(std::string s1, std::string s2);
+	static std::vector<int> Substract(const std::string& s1, const std::string& s2);
 
 private:
 	std::vector<int> num;
@@ -40,8 +41,6 @@ std::string BigNumbers::ToString() const
 	return oss.str();
 }
 
-
-
 std::vector<int> BigNumbers::Convert(const std::string& s)
 {
 	size_t pos = s.size() ;
@@ -60,38 +59,38 @@ std::vector<int> BigNumbers::Convert(const std::string& s)
 	return result;
 }
 
-std::vector<int> BigNumbers::Add(std::string s1, std::string s2)
+BigNumbers BigNumbers::Add(const BigNumbers& s1, const BigNumbers& s2)
 {
-	std::vector<int> num1 = Convert(s1);
-	std::vector<int> num2 = Convert(s2);
-	if (num1.size() > num2.size())
+	auto n1 = s1;
+	auto n2 = s2;
+	if (n1.num.size() > n2.num.size())
 	{
-		num2.insert(num2.end(), num1.size() - num2.size(), 0);
+//		while(s1.num.size() != s2.num.size())
+		n2.num.insert(n2.num.end(), n1.num.size() - n2.num.size(), 0);
 	}
-	if (num1.size() < num2.size())
+	if (n1.num.size() < n2.num.size())
 	{
-		num1.insert(num1.end(), num2.size() - num1.size(), 0);
+		n1.num.insert(n1.num.end(), n2.num.size() - n1.num.size(), 0);
 	}
-	std::vector<int> result(num1.size(), 0);
+	BigNumbers result;
 	int sumBack = 0;
-	for (auto id = 0; id <= num1.size() - 1; id++)
+	for (auto id = 0; id <= n1.num.size() - 1; id++)
 	{
-		int sum = num1.at(id) + num2.at(id) + sumBack;
+		int sum = n1.num.at(id) + n2.num.at(id) + sumBack;
 		sumBack = floor(sum / 10);
-		result.at(id) = sum % 10;
-		if (id == num1.size() - 1 && sum > 9)
+		result.num.push_back(sum % 10);
+		if (id == n1.num.size() - 1 && sum > 9)
 		{
-			result.insert(result.end(), sumBack);
+			result.num.push_back(sumBack);
 		}
 	}
 	return result;
 }
 
-std::vector<int> BigNumbers::Substract(std::string str1, std::string str2)
+std::vector<int> BigNumbers::Substract(const std::string& str1, const std::string& str2)
 {
 	std::vector<int> n1 = Convert(str1);
 	std::vector<int> n2 = Convert(str2);
-	std::vector<int> result(n1.size(), 0);
 	if (n1.size() > n2.size())
 	{
 		n2.insert(n2.end(), n1.size() - n2.size(), 0);
@@ -100,6 +99,7 @@ std::vector<int> BigNumbers::Substract(std::string str1, std::string str2)
 	{
 		n1.insert(n1.end(), n2.size() - n1.size(), 0);
 	}
+	std::vector<int> result(n1.size(), 0);
 	int subBack = 0;
 	for (auto id = 0; id <= n1.size() - 1; id++)
 	{
@@ -123,19 +123,17 @@ int main()
 {
 	BigNumbers number("123456789123456789123456789123456789");
 	std::cout << number.ToString() << std::endl;
-	std::cout <<"123456789123456789123456789123456789" << std::endl;
+	std::cout << "123456789123456789123456789123456789" << std::endl;
 	BigNumbers number1("123456789123456700000000000000089123456000000000000000000333332344340000000000000789123456789");
 	std::cout << number1.ToString() << std::endl;
 	std::cout << "123456789123456700000000000000089123456000000000000000000333332344340000000000000789123456789" << std::endl;
-	std::cout << "111111111111122222222223333333123333333333333321112222"<<std::endl;
+	std::cout << "111111111111122222222223333333123333333333333321112222" << std::endl;
 	std::cout << "18389283848444003384403922940033939020293933333029300293020192303922903029239302092932002002093920023322020209876 " << std::endl;
 	std::cout << "183892838484440032374738466338328303393902029393333003040403332211203922903029239339493494030049393233220202" << std::endl;
-	std::vector <int> SumResult = BigNumbers::Add("18389283848444003384403922940033939020293933333029300293020192303922903029239302092932002002093920023322020209876", "183892838484440032374738466338328303393902029393333003040403332211203922903029239339493494030049393233220202");
-	for (auto id = 0; id < SumResult.size(); id++)
-	{
-		std::cout << SumResult.at(SumResult.size() - id - 1);
-	}
-	std::vector <int> SubResult = BigNumbers::Substract("1838928384844400338440392294003393902029393333302930029302019230392290302923930209293200200209392002332202 ", "183892838484440032374738466338328303393902029393333003040403332211203922903029239339493494030049393233220202");
+	BigNumbers SumResult = BigNumbers::Add(BigNumbers("18389283848444003384403922940033939020293933333029300293020192303922903029239302092932002002093920023322020209876"),
+											{"183892838484440032374738466338328303393902029393333003040403332211203922903029239339493494030049393233220202"});
+	std::cout << SumResult.ToString();
+	std::vector <int> SubResult = BigNumbers::Substract("1838928384844400338440392294003393902029393333302930029302019230392290302923930209293200200209392002332202", "183892838484440032374738466338328303393902029393333003040403332211203922903029239339493494030049393233220202");
 	for (auto id = 0; id < SubResult.size(); id++)
 	{
 		std::cout << SubResult.at(SubResult.size() - id - 1);
