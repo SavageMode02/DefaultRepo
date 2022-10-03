@@ -15,25 +15,61 @@ public:
 
 	std::string ToString() const;
 
-	static std::vector<int> Convert(const std::string& s);
+	bool operator>(const BigNumbers& val) const;
+	bool operator<=(const BigNumbers& val) const { return !(*this > val); }
 
 	bool PositiveCheck(const std::string& s) const;
 
-	static BigNumbers Add(const BigNumbers& s1, const BigNumbers& s2);
 
-	static BigNumbers Add1(const BigNumbers& n1, const BigNumbers& n2);
+	static BigNumbers Add(const BigNumbers& n1, const BigNumbers& n2);
+	static BigNumbers Sub(const BigNumbers& n1, const BigNumbers& n2);
 
-	static BigNumbers Substract(const BigNumbers& sub1, const BigNumbers& sub2);
+//	static BigNumbers Substract(const BigNumbers& sub1, const BigNumbers& sub2);
 
-	static BigNumbers Substract1(const BigNumbers& n1, const BigNumbers& n2);
+//	static BigNumbers Substract1(const BigNumbers& n1, const BigNumbers& n2);
 
+private:
+	static std::vector<int> Convert(const std::string& s);
+	static BigNumbers Add_(const BigNumbers& s1, const BigNumbers& s2);
+	static BigNumbers Sub_(const BigNumbers& s1, const BigNumbers& s2);
+
+	bool isUnsignedBigest(const BigNumbers& val) const;
 private:
 	std::vector<int> num;
 	bool isPositive = true;
 	static const int chunkLength;
+	static const int maxChunkPlusOne;
 };
 
-const int BigNumbers::chunkLength = 8;
+const int BigNumbers::chunkLength = 3;
+const int BigNumbers::maxChunkPlusOne = pow(10, chunkLength);
+
+bool BigNumbers::operator>(const BigNumbers& val) const
+{
+	if (val.isPositive != isPositive)
+	{
+		if (isPositive)
+			return true;
+		return false;
+	}
+	return isUnsignedBigest(val);
+}
+
+bool BigNumbers::isUnsignedBigest(const BigNumbers& val) const
+{
+	if (num.size() >= val.num.size())
+	{
+		for (size_t i = num.size() - 1; i >= 0; i--)
+		{
+			if (i >= val.num.size() && num[i] != 0)
+				return true;
+			if (i < val.num.size() && num[i] != val.num[i])
+				return num[i] > val.num[i];
+		}
+		return false;
+	}
+	return !val.isUnsignedBigest(*this);
+}
 
 std::string BigNumbers::ToString() const
 {
@@ -58,34 +94,20 @@ std::string BigNumbers::ToString() const
 std::vector<int> BigNumbers::Convert(const std::string& s)
 {
 	std::vector<int> result;
-	size_t pos = s.size();
-	if (s.at(0) == '-')
+	std::string t = s;
+	if (s.at(0) == '-' || s.at(0) == '+')
+		t = s.substr(1, s.size());
+	size_t pos = t.size();
+	while (pos >= chunkLength)
 	{
-		while (pos >= chunkLength + 1)
-		{
-			pos -= chunkLength;
-			std::string t = s.substr(pos, chunkLength);
-			result.push_back(std::stoi(t));
-		}
-		if (pos != 1)
-		{
-			std::string t = s.substr(1, pos);
-			result.push_back(std::stoi(t));
-		}
+		pos -= chunkLength;
+		std::string t1 = t.substr(pos, chunkLength);
+		result.push_back(std::stoi(t1));
 	}
-	else
+	if (pos != 0)
 	{
-		while (pos >= chunkLength)
-		{
-			pos -= chunkLength;
-			std::string t = s.substr(pos, chunkLength);
-			result.push_back(std::stoi(t));
-		}
-		if (pos != 0)
-		{
-			std::string t = s.substr(0, pos);
-			result.push_back(std::stoi(t));
-		}
+		std::string t1 = t.substr(0, pos);
+		result.push_back(std::stoi(t1));
 	}
 	return result;
 }
@@ -103,60 +125,46 @@ bool BigNumbers::PositiveCheck(const std::string& s) const
 	}
 }
 
-
-BigNumbers BigNumbers::Add(const BigNumbers& s1, const BigNumbers& s2)
+BigNumbers BigNumbers::Sub_(const BigNumbers& s1, const BigNumbers& s2)
 {
-	auto n1 = s1;
-	auto n2 = s2;
-	if (n1.num.size() > n2.num.size())
+	auto result = s1;
+	for (size_t i = 0; i < s2.num.size(); i++)
 	{
-		//		while(s1.num.size() != s2.num.size())
-		n2.num.insert(n2.num.end(), n1.num.size() - n2.num.size(), 0);
-	}
-	if (n1.num.size() < n2.num.size())
-	{
-		n1.num.insert(n1.num.end(), n2.num.size() - n1.num.size(), 0);
-	}
-	BigNumbers result;
-	int sumBack = 0;
-	for (auto id = 0; id <= n1.num.size() - chunkLength; id+=chunkLength)
-	{
-		auto vechunk1 = 0;
-		auto vechunk2 = 0;
-		for (auto i = 0; i <= chunkLength - 1; i++)
+		if (result.num[i] < s2.num[i])
 		{
-			vechunk1 += n1.num.at(id + i) * pow(10, i);
-			vechunk2 += n2.num.at(id + i) * pow(10, i);
-		}
-
-		int sum = vechunk1 + vechunk2 + sumBack;
-		sumBack = floor(sum / pow(10, chunkLength+1));
-		auto intores = sum - sumBack * intPower(10, chunkLength + 1);
-		for (int id = 0; id < chunkLength; id++)
-		{
-			auto currentDigit = chunkLength - id ;
-			auto digit = floor( intores % intPower(10, currentDigit + 1) / intPower(10, currentDigit));
-			result.num.push_back(digit);
-		}
-	}
-	auto remain = n1.num.size() % chunkLength;
-	if (remain != 0)
-	{ 
-		for (auto id = n1.num.size() - remain; id <= n1.num.size() - 1; id++)
-		{
-			int sum = n1.num.at(id) + n2.num.at(id) + sumBack;
-			sumBack = floor(sum / 10);
-			result.num.push_back(sum % 10);
-			if (id == n1.num.size() - 1 && sum > 9)
+			int j = i + 1;
+			while (result.num[j] == 0)
 			{
-				result.num.push_back(sumBack);
+				j++;
+			}
+			while (j > i)
+			{
+				result.num[j]--;
+				j--;
+				result.num[j] += maxChunkPlusOne;
 			}
 		}
+		result.num[i] -= s2.num[i];
 	}
-
 	return result;
 }
 
+BigNumbers BigNumbers::Add_(const BigNumbers& s1, const BigNumbers& s2)
+{
+	auto result = s1;
+	int p = 0;
+	int val = 0;
+	for (size_t i = 0; i<s2.num.size(); i++)
+	{
+		if (i > result.num.size())
+			result.num.push_back(0);
+		val = result.num[i] + s2.num[i] + p;
+		result.num[i] = val % maxChunkPlusOne;
+		p = val / maxChunkPlusOne;
+	}
+	return result;
+}
+/*
 BigNumbers BigNumbers::Substract(const BigNumbers& sub1, const BigNumbers& sub2)
 {
 	auto n1 = sub1;
@@ -283,36 +291,36 @@ BigNumbers BigNumbers::Substract(const BigNumbers& sub1, const BigNumbers& sub2)
 	return result;
 }
 
-BigNumbers BigNumbers::Add1(const BigNumbers& n1,const BigNumbers& n2)
+*/
+BigNumbers BigNumbers::Add(const BigNumbers& n1,const BigNumbers& n2)
 {
-	auto l1 = n1;
-	auto l2 = n2;
 	BigNumbers result;
-	if (l1.isPositive && l2.isPositive)
+	if (n1.isPositive == n2.isPositive) 
 	{
-		result = Add(l1, l2);
+		result = Add_(n1, n2);
 	}
-	if (!l1.isPositive && l2.isPositive)
+	else if(n1.isUnsignedBigest(n2))
 	{
-		l1.isPositive = true;
-		result = Substract(l2, l1);
+		result = Sub_(n1, n2);
+		result.isPositive = n1.isPositive;
 	}
-	if (l1.isPositive && !l2.isPositive)
+	else
 	{
-		l2.isPositive = true;
-		result = Substract(l1, l2);
-	}
-	if (!l1.isPositive && !l2.isPositive)
-	{
-		l1.isPositive = true;
-		l2.isPositive = true;
-		result = Add(l1, l2);
-		result.isPositive = false;
+		result = Sub_(n2, n1);
+		result.isPositive = n2.isPositive;
 	}
 	return result;
 }
 
+BigNumbers BigNumbers::Sub(const BigNumbers& n1, const BigNumbers& n2)
+{
+	auto l2 = n2;
+	l2.isPositive = !l2.isPositive;
+	return Add(n1, l2);
+}
 
+
+/*
 BigNumbers BigNumbers::Substract1(const BigNumbers& n1, const BigNumbers& n2)
 {
 	auto l1 = n1;
@@ -340,12 +348,31 @@ BigNumbers BigNumbers::Substract1(const BigNumbers& n1, const BigNumbers& n2)
 	}
 	return result;
 }
+*/
 
 
 int main()
 {
 	BigNumbers number("123456789123456789123456789123456789");
-	std::cout << number.ToString() << std::endl;
+	//std::cout << number.ToString() << std::endl;
+	BigNumbers r1 = BigNumbers::Add({ "5356" }, { "6356" });  
+	std::cout << (r1.ToString() == "11712")<<std::endl;
+	BigNumbers r2 = BigNumbers::Add({ "-5356" }, { "-6356" });
+	std::cout << (r2.ToString() == "-11712")<<std::endl;
+
+	BigNumbers r3 = BigNumbers::Add({ "5356" }, { "-6356" });
+	std::cout << (r3.ToString() == "-1000") << std::endl;
+	BigNumbers r4 = BigNumbers::Add({ "-5356" }, { "6356" });
+	std::cout << (r4.ToString() == "1000") << std::endl;
+
+	BigNumbers r5 = BigNumbers::Sub({ "5356" }, { "6356" });
+	std::cout << (r5.ToString() == "-1000") << std::endl;
+	BigNumbers r6 = BigNumbers::Sub({ "5000356" }, { "6356" });
+	std::cout << r6.ToString() << std::endl;
+	std::cout << (r6.ToString() == "4994000") << std::endl;
+
+
+	/*
 	std::cout << "123456789123456789123456789123456789" << std::endl;
 	BigNumbers number1("123456789123456700000000000000089123456000000000000000000333332344340000000000000789123456789");
 	std::cout << number1.ToString() << std::endl;
@@ -359,5 +386,6 @@ int main()
 	BigNumbers SubResult = BigNumbers::Substract(BigNumbers("1838928384844400338440392294003393902029393333302930029302019230392290302923930209293200200209392002332202"),
 														BigNumbers("183892838484440032374738466338328303393902029393333003040403332211203922903029239339493494030049393233220202"));
 	std::cout << SubResult.ToString();
+	*/
 
 }
