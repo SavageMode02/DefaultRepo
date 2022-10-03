@@ -27,8 +27,6 @@ public:
 
 	static BigNumbers Substract1(const BigNumbers& n1, const BigNumbers& n2);
 
-	static std::vector<int> Substract(const std::string& s1, const std::string& s2);
-
 private:
 	std::vector<int> num;
 	bool isPositive = true;
@@ -49,7 +47,10 @@ std::string BigNumbers::ToString() const
 	for (auto id = num.crbegin() + 1; id != num.crend(); id++)
 	{
 		std::string t = std::to_string(*id);
-		oss << std::string(chunkLength - t.size(), '0') << t;
+		if (t.size() > chunkLength)
+			oss << t;
+		else
+			oss << std::string(chunkLength - t.size(), '0') << t;
 	}
 	return oss.str();
 }
@@ -355,10 +356,8 @@ int main()
 	BigNumbers SumResult = BigNumbers::Add(BigNumbers("18389283848444003384403922940033939020293933333029300293020192303922903029239302092932002002093920023322020209876"),
 		{ "183892838484440032374738466338328303393902029393333003040403332211203922903029239339493494030049393233220202" });
 	std::cout << SumResult.ToString();
-	std::vector <int> SubResult = BigNumbers::Substract("1838928384844400338440392294003393902029393333302930029302019230392290302923930209293200200209392002332202", "183892838484440032374738466338328303393902029393333003040403332211203922903029239339493494030049393233220202");
-	for (auto id = 0; id < SubResult.size(); id++)
-	{
-		std::cout << SubResult.at(SubResult.size() - id - 1);
-	}
+	BigNumbers SubResult = BigNumbers::Substract(BigNumbers("1838928384844400338440392294003393902029393333302930029302019230392290302923930209293200200209392002332202"),
+														BigNumbers("183892838484440032374738466338328303393902029393333003040403332211203922903029239339493494030049393233220202"));
+	std::cout << SubResult.ToString();
 
 }
