@@ -23,6 +23,7 @@ public:
 
 	static BigNumbers Add(const BigNumbers& n1, const BigNumbers& n2);
 	static BigNumbers Sub(const BigNumbers& n1, const BigNumbers& n2);
+	static BigNumbers Multiplication(const BigNumbers& n1, const BigNumbers& n2);
 
 //	static BigNumbers Substract(const BigNumbers& sub1, const BigNumbers& sub2);
 
@@ -32,6 +33,8 @@ private:
 	static std::vector<int> Convert(const std::string& s);
 	static BigNumbers Add_(const BigNumbers& s1, const BigNumbers& s2);
 	static BigNumbers Sub_(const BigNumbers& s1, const BigNumbers& s2);
+	static BigNumbers Multiplication_(const BigNumbers& n1, const BigNumbers& n2);
+	static BigNumbers MultiplicationByTwoPow(const BigNumbers& n, const int pow);
 
 	bool isUnsignedBigest(const BigNumbers& val) const;
 private:
@@ -192,14 +195,55 @@ BigNumbers BigNumbers::Sub(const BigNumbers& n1, const BigNumbers& n2)
 	return Add(n1, l2);
 }
 
+
+BigNumbers BigNumbers::MultiplicationByTwoPow(const BigNumbers& n, const int pow)
+{
+	auto result = n;
+	for (int i = 1; i <= pow; i++)
+	{
+		result = Add(result, result);
+	}
+	return result;
+}
+
+
+
+BigNumbers BigNumbers::Multiplication_(const BigNumbers& n1, const BigNumbers& n2)
+{
+	BigNumbers result("0");
+	BigNumbers res("0");
+	while (n1.isUnsignedBigest(res))
+	{
+		int k = 0;
+		while (n1.isUnsignedBigest(MultiplicationByTwoPow(BigNumbers({ "1" }), k)))
+		{
+			k++;
+		}
+		res = Add(res, MultiplicationByTwoPow(BigNumbers({ "1" }), k - 1));
+		result = Add(MultiplicationByTwoPow(n2, k - 1), result);
+	}
+	return result;
+}
+
+
+BigNumbers BigNumbers::Multiplication(const BigNumbers& n1, const BigNumbers& n2)
+{
+	BigNumbers result = Multiplication_(n1, n2);
+	if (n1.isPositive != n2.isPositive)
+	{
+		result.isPositive = false;
+	}
+	return result;
+}
+
 int main()
 {
-	BigNumbers number("123456789123456789123456789123456789");
+	/*BigNumbers number("123456789123456789123456789123456789");
 	//std::cout << number.ToString() << std::endl;
-	BigNumbers r1 = BigNumbers::Add({ "5356" }, { "6356" });  
-	std::cout << (r1.ToString() == "11712")<<std::endl;
+	BigNumbers r1 = BigNumbers::Add({ "5356" }, { "6356" });
+	std::cout << (r1.ToString() == "11712") << std::endl;
 	BigNumbers r2 = BigNumbers::Add({ "-5356" }, { "-6356" });
-	std::cout << (r2.ToString() == "-11712")<<std::endl;
+	std::cout << (r2.ToString() == "-11712") << std::endl;
 
 	BigNumbers r3 = BigNumbers::Add({ "5356" }, { "-6356" });
 	std::cout << (r3.ToString() == "-1000") << std::endl;
@@ -210,9 +254,13 @@ int main()
 	std::cout << (r5.ToString() == "-1000") << std::endl;
 	BigNumbers r6 = BigNumbers::Sub({ "5000356" }, { "6356" });
 	std::cout << r6.ToString() << std::endl;
-	std::cout << (r6.ToString() == "4994000") << std::endl;
+	std::cout << (r6.ToString() == "4994000") << std::endl;*/
 
+	//BigNumbers r1 = BigNumbers::Multiplication({ "345" }, { "67" });
+	//std::cout << r1.ToString() << std::endl;
 
+	BigNumbers r2 = BigNumbers::Multiplication({ "19" }, { "1929" });
+	std::cout << r2.ToString() << std::endl;
 	/*
 	std::cout << "123456789123456789123456789123456789" << std::endl;
 	BigNumbers number1("123456789123456700000000000000089123456000000000000000000333332344340000000000000789123456789");
@@ -230,3 +278,7 @@ int main()
 	*/
 
 }
+
+
+
+//2 4 8 16 32 64 128 256 512 1024 2048 4096 8192 16384 32768 65    15 14 7 6 3 2 1 0
