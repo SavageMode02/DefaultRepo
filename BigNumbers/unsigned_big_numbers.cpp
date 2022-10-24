@@ -92,7 +92,7 @@ bool UBigNumbers::operator>(const UBigNumbers& val) const
 {
 	if (num.size() >= val.num.size())
 	{
-		for (size_t i = num.size() - 1; i >= 0; i--)
+		for (size_t i = num.size() - 1; i >= 0 && i < num.size(); i--)
 		{
 			if (i >= val.num.size() && num[i] != 0)
 				return true;
@@ -104,55 +104,50 @@ bool UBigNumbers::operator>(const UBigNumbers& val) const
 	return !(val > *this);
 }
 
-
-bool UBigNumbers::operator<(const UBigNumbers& val) const
-{
-	return !(*this > val || val == *this);
-}
-
 UBigNumbers UBigNumbers::Add(const UBigNumbers& s1, const UBigNumbers& s2)
 {
+	if (s1 < s2)
+		return Add(s2, s1);
 	auto result = s1;
 	int p = 0;
 	int val = 0;
-	for (size_t i = 0; i < s2.num.size(); i++)
+	for (size_t i = s2.num.size() - 1; i >= 0 && i < s2.num.size(); i--)
 	{
 		if (i >= result.num.size())
 		{
-			result.num.push_back(0);
+			result.num.push_front(0);
 		}
 		val = result.num[i] + s2.num[i] + p;
 		result.num[i] = val % maxChunkPlusOne;
 		p = val / maxChunkPlusOne;
-		if (p > 0 && i + 1 >= result.num.size())
-		{
-			result.num.push_back(p);
-			p = 0;
-		}
 	}
-	//	if (p > 0)
-	//	{
-	//		result.num.back() += p;
-	//	}
+	if (p > 0)
+	{
+		result.num.push_front(p);
+	}
 	return result;
 }
 
-UBigNumbers UBigNumbers::Sub(const UBigNumbers& s1, const UBigNumbers& s2) 
+UBigNumbers UBigNumbers::Sub(const UBigNumbers& s1, const UBigNumbers& s2)
 {
+	if (s1 == s2)
+		return { "0" };
+	if (s1 < s2)
+		return Sub(s2, s1);
 	auto result = s1;
-	for (size_t i = 0; i < s2.num.size(); i++)
+	for (size_t i = s2.num.size() - 1; i >= 0 && i < s2.num.size(); i--)
 	{
 		if (result.num[i] < s2.num[i])
 		{
-			int j = i + 1;
+			int j = i - 1;
 			while (result.num[j] == 0)
 			{
-				j++;
+				j--;
 			}
-			while (j > i)
+			while (j < i)
 			{
 				result.num[j]--;
-				j--;
+				j++;
 				result.num[j] += maxChunkPlusOne;
 			}
 		}
@@ -164,10 +159,39 @@ UBigNumbers UBigNumbers::Sub(const UBigNumbers& s1, const UBigNumbers& s2)
 UBigNumbers UBigNumbers::Mul(const UBigNumbers& s1, const UBigNumbers& s2)
 {
 	UBigNumbers result("0");
-	for (UBigNumbers i = { "0" }; i < s2; i = Add(i, { "1" }))
+	for (UBigNumbers i = { "0" }; i < s2; ++i)
 	{
 		//std::cout << i.ToString() << std::endl;
 		result = Add(result, s1);
 	}
 	return result;
+}
+
+void UBigNumbers::operator++()
+{
+	if (num.size() == 0)
+	{
+		num.push_front(1);
+	}
+	else
+	{
+		num[num.size() - 1]++;
+		int p = 0;
+		bool isBreaked = false;
+		for (size_t i = num.size() - 1; i >= 0 && i < num.size(); i--)
+		{
+			if (num[i] < maxChunkPlusOne)
+			{
+				isBreaked = true;
+				break;
+			}
+			int val = num[i];
+			num[i] = val % maxChunkPlusOne;
+			p = val / maxChunkPlusOne;
+		}
+		if (!isBreaked && p > 0)
+		{
+			num.push_front(p);
+		}
+	}
 }
