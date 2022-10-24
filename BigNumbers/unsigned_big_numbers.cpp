@@ -92,7 +92,7 @@ bool UBigNumbers::operator>(const UBigNumbers& val) const
 {
 	if (num.size() >= val.num.size())
 	{
-		for (size_t i = num.size() - 1; i >= 0; i--)
+		for (size_t i = num.size() - 1; i >= 0 && i < num.size(); i--)
 		{
 			if (i >= val.num.size() && num[i] != 0)
 				return true;
@@ -104,36 +104,25 @@ bool UBigNumbers::operator>(const UBigNumbers& val) const
 	return !(val > *this);
 }
 
-
-bool UBigNumbers::operator<(const UBigNumbers& val) const
-{
-	return !(*this > val || val == *this);
-}
-
 UBigNumbers UBigNumbers::Add(const UBigNumbers& s1, const UBigNumbers& s2)
 {
 	auto result = s1;
 	int p = 0;
 	int val = 0;
-	for (size_t i = 0; i < s2.num.size(); i++)
+	for (size_t i = s2.num.size()-1; i >= 0 && i < s2.num.size(); i--)
 	{
 		if (i >= result.num.size())
 		{
-			result.num.push_back(0);
+			result.num.push_front(0);
 		}
 		val = result.num[i] + s2.num[i] + p;
 		result.num[i] = val % maxChunkPlusOne;
 		p = val / maxChunkPlusOne;
-		if (p > 0 && i + 1 >= result.num.size())
-		{
-			result.num.push_back(p);
-			p = 0;
-		}
 	}
-	//	if (p > 0)
-	//	{
-	//		result.num.back() += p;
-	//	}
+	if (p > 0)
+	{
+		result.num.push_front(p);
+	}
 	return result;
 }
 

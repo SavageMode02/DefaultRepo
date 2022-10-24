@@ -3,300 +3,58 @@
 #include<sstream>
 #include<math.h>
 #include "unsigned_big_numbers.h"
-/*
-#define intPower
 
-class BigNumbers
-{
-public:
-	BigNumbers() = default;
-	BigNumbers(const std::string& s)
-		:num(Convert(s))
-		,isPositive(PositiveCheck(s)) {}
-
-
-	std::string ToString() const;
-
-	bool operator>(const BigNumbers& val) const;
-	bool operator<=(const BigNumbers& val) const { return !(*this > val); }
-
-	bool PositiveCheck(const std::string& s) const;
-
-
-	static BigNumbers Add(const BigNumbers& n1, const BigNumbers& n2);
-	static BigNumbers Sub(const BigNumbers& n1, const BigNumbers& n2);
-	static BigNumbers Multiplication(const BigNumbers& n1, const BigNumbers& n2);
-	//static BigNumbers Multiplication(const BigNumbers& n1, uint32_t n2);
-
-//	static BigNumbers Substract(const BigNumbers& sub1, const BigNumbers& sub2);
-
-//	static BigNumbers Substract1(const BigNumbers& n1, const BigNumbers& n2);
-
-private:
-	static std::vector<int> Convert(const std::string& s);
-	static BigNumbers Add_(const BigNumbers& s1, const BigNumbers& s2);
-	static BigNumbers Sub_(const BigNumbers& s1, const BigNumbers& s2);
-	static BigNumbers Multiplication_(const BigNumbers& n1, const BigNumbers& n2);
-	static BigNumbers MultiplicationByTwoPow(const BigNumbers& n, const int pow);
-
-	bool isUnsignedBigest(const BigNumbers& val) const;
-private:
-	std::vector<int> num;
-	bool isPositive = true;
-	static const int chunkLength;
-	static const int maxChunkPlusOne;
-};
-
-bool BigNumbers::operator>(const BigNumbers& val) const
-{
-	if (val.isPositive != isPositive)
-	{
-		if (isPositive)
-			return true;
-		return false;
-	}
-	return isUnsignedBigest(val);
-}
-
-bool BigNumbers::isUnsignedBigest(const BigNumbers& val) const
-{
-	if (num.size() >= val.num.size())
-	{
-		for (size_t i = num.size() - 1; i >= 0; i--)
-		{
-			if (i >= val.num.size() && num[i] != 0)
-				return true;
-			if (i < val.num.size() && num[i] != val.num[i])
-				return num[i] > val.num[i];
-			if (i == 0)
-				break;
-		}
-		return false;
-	}
-	return !val.isUnsignedBigest(*this);
-}
-
-std::string BigNumbers::ToString() const
-{
-	if (num.empty()) { return "0"; }
-	std::ostringstream oss;
-	if (!isPositive)
-	{
-		oss << "-";
-	}
-	oss << *num.crbegin();
-	for (auto id = num.crbegin() + 1; id != num.crend(); id++)
-	{
-		std::string t = std::to_string(*id);
-		if (t.size() > chunkLength)
-			oss << t;
-		else
-			oss << std::string(chunkLength - t.size(), '0') << t;
-	}
-	return oss.str();
-}
-
-std::vector<int> BigNumbers::Convert(const std::string& s)
-{
-	std::vector<int> result;
-	std::string t = s;
-	if (s.at(0) == '-' || s.at(0) == '+')
-		t = s.substr(1, s.size());
-	size_t pos = t.size();
-	while (pos >= chunkLength)
-	{
-		pos -= chunkLength;
-		std::string t1 = t.substr(pos, chunkLength);
-		result.push_back(std::stoi(t1));
-	}
-	if (pos != 0)
-	{
-		std::string t1 = t.substr(0, pos);
-		result.push_back(std::stoi(t1));
-	}
-	return result;
-}
-
-
-bool BigNumbers::PositiveCheck(const std::string& s) const
-{
-	if (s.at(0) == '-')
-	{
-		return false;
-	}
-	else
-	{
-		return true;
-	}
-}
-
-BigNumbers BigNumbers::Sub_(const BigNumbers& s1, const BigNumbers& s2)
-{
-	auto result = s1;
-	for (size_t i = 0; i < s2.num.size(); i++)
-	{
-		if (result.num[i] < s2.num[i])
-		{
-			int j = i + 1;
-			while (result.num[j] == 0)
-			{
-				j++;
-			}
-			while (j > i)
-			{
-				result.num[j]--;
-				j--;
-				result.num[j] += maxChunkPlusOne;
-			}
-		}
-		result.num[i] -= s2.num[i];
-	}
-	return result;
-}
-
-BigNumbers BigNumbers::Add_(const BigNumbers& s1, const BigNumbers& s2)
-{
-	auto result = s1;
-	int p = 0;
-	int val = 0;
-	for (size_t i = 0; i < s2.num.size(); i++)
-	{
-		if (i >= result.num.size())
-		{
-			result.num.push_back(0);
-		}
-		val = result.num[i] + s2.num[i] + p;
-		result.num[i] = val % maxChunkPlusOne;
-		p = val / maxChunkPlusOne;
-		if (p > 0 && i+1 >= result.num.size())
-		{
-			result.num.push_back(p);
-			p = 0;
-		}
-	}
-//	if (p > 0)
-//	{
-//		result.num.back() += p;
-//	}
-	return result;
-}
-
-BigNumbers BigNumbers::Add(const BigNumbers& n1,const BigNumbers& n2)
-{
-	BigNumbers result;
-	if (n1.isPositive == n2.isPositive)
-	{
-		result = Add_(n1, n2);
-	}
-	else if(n1.isUnsignedBigest(n2))
-	{
-		result = Sub_(n1, n2);
-		result.isPositive = n1.isPositive;
-	}
-	else
-	{
-		result = Sub_(n2, n1);
-		result.isPositive = n2.isPositive;
-	}
-	return result;
-}
-
-BigNumbers BigNumbers::Sub(const BigNumbers& n1, const BigNumbers& n2)
-{
-	auto l2 = n2;
-	l2.isPositive = !l2.isPositive;
-	return Add(n1, l2);
-}
-
-
-BigNumbers BigNumbers::MultiplicationByTwoPow(const BigNumbers& n, const int pow)
-{
-	auto result = n;
-	for (int i = 1; i <= pow; i++)
-	{
-		result = Add(result, result);
-	}
-	return result;
-}
-
-
-
-BigNumbers BigNumbers::Multiplication_(const BigNumbers& n1, const BigNumbers& n2)
-{
-	BigNumbers result("0");
-	for (BigNumbers i = { "0" }; n2.isUnsignedBigest(i); i = Add(i, { "1" }))
-	{
-		//std::cout << i.ToString() << std::endl;
-		result = Add(result, n1);
-	}
-	return result;
-}
-
-
-BigNumbers BigNumbers::Multiplication(const BigNumbers& n1, const BigNumbers& n2)
-{
-	BigNumbers result = Multiplication_(n1, n2);
-	result.isPositive = (n1.isPositive == n2.isPositive);
-	return result;
-}
-*/
-
-int main()
+bool ConstructUnsignedNums()
 {
 	UBigNumbers a("00000000000000000000000120031234343");
 	uint64_t t = 312999988998888899;
 	UBigNumbers b(t);
-	UBigNumbers c(t);
-	std::cout << a.ToString() << std::endl;
-	std::cout << b.ToString() << std::endl;
-	std::cout << (b == c) << std::endl;
-	std::cout << (b != c) << std::endl;
-	std::cout << (b == a) << std::endl;
-	std::cout << (b < c) << std::endl;
-	std::cout << UBigNumbers::Add(b, c).ToString() << std::endl;
-
-
-	/*BigNumbers number("123456789123456789123456789123456789");
-	//std::cout << number.ToString() << std::endl;
-	BigNumbers r1 = BigNumbers::Add({ "5356" }, { "6356" });
-	std::cout << (r1.ToString() == "11712") << std::endl;
-	BigNumbers r2 = BigNumbers::Add({ "-5356" }, { "-6356" });
-	std::cout << (r2.ToString() == "-11712") << std::endl;
-
-	BigNumbers r3 = BigNumbers::Add({ "5356" }, { "-6356" });
-	std::cout << (r3.ToString() == "-1000") << std::endl;
-	BigNumbers r4 = BigNumbers::Add({ "-5356" }, { "6356" });
-	std::cout << (r4.ToString() == "1000") << std::endl;
-
-	BigNumbers r5 = BigNumbers::Sub({ "5356" }, { "6356" });
-	std::cout << (r5.ToString() == "-1000") << std::endl;
-	BigNumbers r6 = BigNumbers::Sub({ "5000356" }, { "6356" });
-	std::cout << r6.ToString() << std::endl;
-	std::cout << (r6.ToString() == "4994000") << std::endl;*/
-
-	//BigNumbers r1 = BigNumbers::Multiplication({ "345" }, { "67" });
-	//std::cout << r1.ToString() << std::endl;
-
-	//BigNumbers r2 = BigNumbers::Multiplication({ "19356" }, { "1929" });
-	//std::cout << r2.ToString() << std::endl;
-	/*
-	std::cout << "123456789123456789123456789123456789" << std::endl;
-	BigNumbers number1("123456789123456700000000000000089123456000000000000000000333332344340000000000000789123456789");
-	std::cout << number1.ToString() << std::endl;
-	std::cout << "123456789123456700000000000000089123456000000000000000000333332344340000000000000789123456789" << std::endl;
-	std::cout << "111111111111122222222223333333123333333333333321112222" << std::endl;
-	std::cout << "18389283848444003384403922940033939020293933333029300293020192303922903029239302092932002002093920023322020209876 " << std::endl;
-	std::cout << "183892838484440032374738466338328303393902029393333003040403332211203922903029239339493494030049393233220202" << std::endl;
-	BigNumbers SumResult = BigNumbers::Add(BigNumbers("18389283848444003384403922940033939020293933333029300293020192303922903029239302092932002002093920023322020209876"),
-		{ "183892838484440032374738466338328303393902029393333003040403332211203922903029239339493494030049393233220202" });
-	std::cout << SumResult.ToString();
-	BigNumbers SubResult = BigNumbers::Substract(BigNumbers("1838928384844400338440392294003393902029393333302930029302019230392290302923930209293200200209392002332202"),
-														BigNumbers("183892838484440032374738466338328303393902029393333003040403332211203922903029239339493494030049393233220202"));
-	std::cout << SubResult.ToString();
-	*/
-
+	uint64_t t1 = 312999988998888899;
+	UBigNumbers c(t1);
+	bool r1 = (a.ToString() == "120031234343");
+	bool r2 = (b.ToString() == "312999988998888899");
+	bool r3 = (c.ToString() == "312999988998888899");
+	return r1 && r2 && r3;
 }
 
+bool EqualsUnsignedNums()
+{
+	UBigNumbers a("00000000000000000000000120031234343");
+	UBigNumbers b(312999988998888899);
+	UBigNumbers d(312999988998888899);
+	UBigNumbers c(912999988998888899);
+	bool r1 =(b == d);
+	bool r2 =!(b != d);
+	bool r3 =(b > a);
+	bool r4 =(c > b) ;
+	bool r5 =(b < c) ;
+	bool r6 =(c >= b) ;
+	bool r7 =(b <= c) ;
+	bool r8 =(b <= d) && (b>=d);
+	return r1 && r2 && r3 && r4
+		&& r5 && r6 && r7 && r8;
+}
 
+bool AddUnsignedTest()
+{
+	uint64_t t = 312999988998888899;
+	UBigNumbers a(t);
+	UBigNumbers b(t);
+	bool result1 = (UBigNumbers::Add(a, b) == UBigNumbers("625999977997777798"));
+	uint64_t t1 = 312999988998888899;
+	uint64_t t2 = 912999988998888899;
+	UBigNumbers a1(t1);
+	UBigNumbers b1(t2);
+	bool result2 = (UBigNumbers::Add(a1, b1) == UBigNumbers("1225999977997777798"));
+	UBigNumbers t3 = UBigNumbers::Add(a1, b1);
+	UBigNumbers t4 = UBigNumbers::Add(a1, t3);
+	bool result3 = (UBigNumbers::Add(t3, t4) == UBigNumbers("2764999944994444495"));
+	return result1 && result2 && result3;
+}
 
-//2 4 8 16 32 64 128 256 512 1024 2048 4096 8192 16384 32768 65    15 14 7 6 3 2 1 0
+int main()
+{
+	std::cout <<"ConstructUnsignedNums():"<< ConstructUnsignedNums() << std::endl;
+	std::cout <<"EqualsUnsignedNums():"<< EqualsUnsignedNums() << std::endl;
+	std::cout <<"AddUnsignedTest():"<< AddUnsignedTest() << std::endl;
+}

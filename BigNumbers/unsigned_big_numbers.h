@@ -15,7 +15,7 @@ public:
 	std::string ToString() const;
 
 	bool operator>(const UBigNumbers& val) const;
-	bool operator<(const UBigNumbers& val) const;
+	bool operator<(const UBigNumbers& val) const { return !(*this > val || val == *this); }
 	bool operator<=(const UBigNumbers& val) const { return !(*this > val); }
 	bool operator>=(const UBigNumbers& val) const { return !(*this < val); }
 	bool operator==(const UBigNumbers& val) const;
