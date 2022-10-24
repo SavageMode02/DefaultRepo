@@ -2,6 +2,8 @@
 #include<vector>
 #include<sstream>
 #include<math.h>
+#include "unsigned_big_numbers.h"
+/*
 #define intPower
 
 class BigNumbers
@@ -9,7 +11,7 @@ class BigNumbers
 public:
 	BigNumbers() = default;
 	BigNumbers(const std::string& s)
-		:num(Convert(s)) 
+		:num(Convert(s))
 		,isPositive(PositiveCheck(s)) {}
 
 
@@ -24,6 +26,7 @@ public:
 	static BigNumbers Add(const BigNumbers& n1, const BigNumbers& n2);
 	static BigNumbers Sub(const BigNumbers& n1, const BigNumbers& n2);
 	static BigNumbers Multiplication(const BigNumbers& n1, const BigNumbers& n2);
+	//static BigNumbers Multiplication(const BigNumbers& n1, uint32_t n2);
 
 //	static BigNumbers Substract(const BigNumbers& sub1, const BigNumbers& sub2);
 
@@ -43,9 +46,6 @@ private:
 	static const int chunkLength;
 	static const int maxChunkPlusOne;
 };
-
-const int BigNumbers::chunkLength = 3;
-const int BigNumbers::maxChunkPlusOne = pow(10, chunkLength);
 
 bool BigNumbers::operator>(const BigNumbers& val) const
 {
@@ -68,6 +68,8 @@ bool BigNumbers::isUnsignedBigest(const BigNumbers& val) const
 				return true;
 			if (i < val.num.size() && num[i] != val.num[i])
 				return num[i] > val.num[i];
+			if (i == 0)
+				break;
 		}
 		return false;
 	}
@@ -157,21 +159,32 @@ BigNumbers BigNumbers::Add_(const BigNumbers& s1, const BigNumbers& s2)
 	auto result = s1;
 	int p = 0;
 	int val = 0;
-	for (size_t i = 0; i<s2.num.size(); i++)
+	for (size_t i = 0; i < s2.num.size(); i++)
 	{
-		if (i > result.num.size())
+		if (i >= result.num.size())
+		{
 			result.num.push_back(0);
+		}
 		val = result.num[i] + s2.num[i] + p;
 		result.num[i] = val % maxChunkPlusOne;
 		p = val / maxChunkPlusOne;
+		if (p > 0 && i+1 >= result.num.size())
+		{
+			result.num.push_back(p);
+			p = 0;
+		}
 	}
+//	if (p > 0)
+//	{
+//		result.num.back() += p;
+//	}
 	return result;
 }
 
 BigNumbers BigNumbers::Add(const BigNumbers& n1,const BigNumbers& n2)
 {
 	BigNumbers result;
-	if (n1.isPositive == n2.isPositive) 
+	if (n1.isPositive == n2.isPositive)
 	{
 		result = Add_(n1, n2);
 	}
@@ -211,16 +224,10 @@ BigNumbers BigNumbers::MultiplicationByTwoPow(const BigNumbers& n, const int pow
 BigNumbers BigNumbers::Multiplication_(const BigNumbers& n1, const BigNumbers& n2)
 {
 	BigNumbers result("0");
-	BigNumbers res("0");
-	while (n1.isUnsignedBigest(res))
+	for (BigNumbers i = { "0" }; n2.isUnsignedBigest(i); i = Add(i, { "1" }))
 	{
-		int k = 0;
-		while (n1.isUnsignedBigest(MultiplicationByTwoPow(BigNumbers({ "1" }), k)))
-		{
-			k++;
-		}
-		res = Add(res, MultiplicationByTwoPow(BigNumbers({ "1" }), k - 1));
-		result = Add(MultiplicationByTwoPow(n2, k - 1), result);
+		//std::cout << i.ToString() << std::endl;
+		result = Add(result, n1);
 	}
 	return result;
 }
@@ -229,15 +236,26 @@ BigNumbers BigNumbers::Multiplication_(const BigNumbers& n1, const BigNumbers& n
 BigNumbers BigNumbers::Multiplication(const BigNumbers& n1, const BigNumbers& n2)
 {
 	BigNumbers result = Multiplication_(n1, n2);
-	if (n1.isPositive != n2.isPositive)
-	{
-		result.isPositive = false;
-	}
+	result.isPositive = (n1.isPositive == n2.isPositive);
 	return result;
 }
+*/
 
 int main()
 {
+	UBigNumbers a("00000000000000000000000120031234343");
+	uint64_t t = 312999988998888899;
+	UBigNumbers b(t);
+	UBigNumbers c(t);
+	std::cout << a.ToString() << std::endl;
+	std::cout << b.ToString() << std::endl;
+	std::cout << (b == c) << std::endl;
+	std::cout << (b != c) << std::endl;
+	std::cout << (b == a) << std::endl;
+	std::cout << (b < c) << std::endl;
+	std::cout << UBigNumbers::Add(b, c).ToString() << std::endl;
+
+
 	/*BigNumbers number("123456789123456789123456789123456789");
 	//std::cout << number.ToString() << std::endl;
 	BigNumbers r1 = BigNumbers::Add({ "5356" }, { "6356" });
@@ -259,8 +277,8 @@ int main()
 	//BigNumbers r1 = BigNumbers::Multiplication({ "345" }, { "67" });
 	//std::cout << r1.ToString() << std::endl;
 
-	BigNumbers r2 = BigNumbers::Multiplication({ "19" }, { "1929" });
-	std::cout << r2.ToString() << std::endl;
+	//BigNumbers r2 = BigNumbers::Multiplication({ "19356" }, { "1929" });
+	//std::cout << r2.ToString() << std::endl;
 	/*
 	std::cout << "123456789123456789123456789123456789" << std::endl;
 	BigNumbers number1("123456789123456700000000000000089123456000000000000000000333332344340000000000000789123456789");
